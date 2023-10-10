@@ -5,6 +5,9 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+
+# from django.views.generic.list import MultipleObjectMixin
+
 from django.urls import reverse_lazy
 from django.http import Http404
 from django.contrib.auth.models import User
@@ -34,8 +37,7 @@ class PostListView(ListView):
             is_published=True,
             category__is_published=True
         ).order_by('-pub_date')
-#        self.num_comments = queryset.aggregate(
-#            num_comments=Count('comments'))['num_comments']
+
         return queryset
 
 
@@ -66,12 +68,12 @@ class PostDetailView(DetailView):
     template_name = 'blog/detail.html'
 
     def get_object(self):
-
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        if post.author == self.request.user:
+            return post
 
         if (post.author != self.request.user) and (not post.is_published):
             raise Http404
-
         return post
 
     def get_context_data(self, **kwargs):
@@ -119,6 +121,31 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
         if obj.author != self.request.user:
             raise PermissionDenied
         return obj
+
+
+# class CategoryDetailView(MultipleObjectMixin, DetailView):
+#    model = Category
+#    slug_url_kwarg = 'category_slug'
+#    paginate_by = 10
+#    template_name = 'blog/category.html'
+#
+#    def get_object(self):
+#        return get_object_or_404(
+#            Category,
+#            slug=self.kwargs['category_slug'],
+#            is_published=True,
+#        )
+#
+#    def get_context_data(self, **kwargs):
+#        return super().get_context_data(
+#            object_list=Post.objects.annotate(
+#                comment_count=Count(
+#                    'comments')).filter(
+#                        pub_date__lte=dt.now(),
+#                        is_published=True,
+#                        category=self.object,
+#                        category__is_published=True).order_by(
+#                            '-pub_date'), **kwargs)
 
 
 class CategoryListView(ListView):
@@ -188,21 +215,16 @@ class UserListView(ListView):
 class UserUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = ProfileForm
-    template_name = 'blog/profile.html'
-    slug_url_kwarg = 'username'
-    slug_field = 'username'
+    template_name = 'blog/user.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        self.user_object = get_object_or_404(
-            User,
-            username=self.kwargs.get('username'))
-        return super().dispatch(request, *args, **kwargs)
+#    def dispatch(self, request, *args, **kwargs):
+#        self.user_object = get_object_or_404(
+#            User,
+#            username=self.kwargs.get('username'))
+#        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self):
-        user = super().get_object()
-        if not self.request.user == user:
-            raise Http404('У вас нет доступа к редактированию этой информации')
-        return user
+        return self.request.user
 
     def get_success_url(self):
         return reverse_lazy(
@@ -254,6 +276,7 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
     form_class = CommentForm
     template_name = 'blog/comment.html'
     login_url = '/auth/login/'
+#    pk_url_kwarg = 'comment_id'
 
     def get_object(self):
         comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
