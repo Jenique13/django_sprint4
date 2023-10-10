@@ -56,8 +56,9 @@ class Location(PublishedModel):
 
 
 class Post(PublishedModel, TitleModel):
-    title = models.CharField(max_length=200)
-    text = models.TextField('Текст')
+    title = models.CharField(
+        max_length=200, verbose_name='Заголовок')
+    text = models.TextField(verbose_name='Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
         help_text='''Если установить дату и время в будущем,
@@ -65,19 +66,23 @@ class Post(PublishedModel, TitleModel):
     )
     author = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Автор публикации'
     )
     location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        blank=True,
+        verbose_name='Местоположение'
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        verbose_name='Категория'
     )
-    image = models.ImageField(upload_to='post_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='post_images/', blank=True)
 
     class Meta:
         verbose_name = 'публикация'
@@ -90,6 +95,7 @@ class Post(PublishedModel, TitleModel):
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
                              related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               verbose_name='Автор публикации')
+    text = models.TextField('Текст комментария', null=False)
     created_at = models.DateTimeField(auto_now_add=True)
