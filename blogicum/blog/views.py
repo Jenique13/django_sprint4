@@ -72,8 +72,15 @@ class PostDetailView(DetailView):
         if post.author == self.request.user:
             return post
 
-        if (post.author != self.request.user) and (not post.is_published):
+        if not post.is_published:
             raise Http404
+
+        if not post.category.is_published:
+            raise Http404
+
+        if post.pub_date > dt.now():
+            raise Http404
+
         return post
 
     def get_context_data(self, **kwargs):
@@ -225,6 +232,11 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_object(self):
         return self.request.user
+#        user = super().get_object()
+#        if not self.request.user == user:
+#            raise Http404('У вас нет доступа к
+# редактированию этой информации')
+#        return user
 
     def get_success_url(self):
         return reverse_lazy(
@@ -276,7 +288,7 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
     form_class = CommentForm
     template_name = 'blog/comment.html'
     login_url = '/auth/login/'
-#    pk_url_kwarg = 'comment_id'
+    pk_url_kwarg = 'comment_id'
 
     def get_object(self):
         comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
