@@ -269,7 +269,6 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment.html'
-    login_url = '/auth/login/'
     pk_url_kwarg = 'comment_id'
 
     def get_object(self):
@@ -285,9 +284,7 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
-    form_class = CommentForm
     template_name = 'blog/comment.html'
-    login_url = '/auth/login/'
     pk_url_kwarg = 'comment_id'
 
     def get_object(self):
