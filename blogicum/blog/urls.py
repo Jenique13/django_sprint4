@@ -33,8 +33,8 @@ urlpatterns = [
 
     path('posts/<int:post_id>/comment/',
          CommentCreateView.as_view(), name='add_comment'),
-    path('posts/<int:post_id>/edit_comment/<int:comment_id>/edit/',
+    path('posts/<int:post_id>/edit_comment/<int:comment_id>/',
          CommentUpdateView.as_view(), name='edit_comment'),
-    path('posts/<int:post_id>/comment/<int:id>/delete/',
+    path('posts/<int:post_id>/delete/<int:comment_id>/',
          CommentDeleteView.as_view(), name='delete'),
 ]

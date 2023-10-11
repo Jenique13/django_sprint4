@@ -1,14 +1,9 @@
-from django.shortcuts import redirect
-from django.urls import reverse
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone as dt
-from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
-
-# from django.views.generic.list import MultipleObjectMixin
-
-from django.urls import reverse_lazy
 from django.http import Http404
 from django.contrib.auth.models import User
 from django.views.generic import (
@@ -130,31 +125,6 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
         return obj
 
 
-# class CategoryDetailView(MultipleObjectMixin, DetailView):
-#    model = Category
-#    slug_url_kwarg = 'category_slug'
-#    paginate_by = 10
-#    template_name = 'blog/category.html'
-#
-#    def get_object(self):
-#        return get_object_or_404(
-#            Category,
-#            slug=self.kwargs['category_slug'],
-#            is_published=True,
-#        )
-#
-#    def get_context_data(self, **kwargs):
-#        return super().get_context_data(
-#            object_list=Post.objects.annotate(
-#                comment_count=Count(
-#                    'comments')).filter(
-#                        pub_date__lte=dt.now(),
-#                        is_published=True,
-#                        category=self.object,
-#                        category__is_published=True).order_by(
-#                            '-pub_date'), **kwargs)
-
-
 class CategoryListView(ListView):
     model = Category
     template_name = 'blog/category.html'
@@ -224,19 +194,8 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     form_class = ProfileForm
     template_name = 'blog/user.html'
 
-#    def dispatch(self, request, *args, **kwargs):
-#        self.user_object = get_object_or_404(
-#            User,
-#            username=self.kwargs.get('username'))
-#        return super().dispatch(request, *args, **kwargs)
-
     def get_object(self):
         return self.request.user
-#        user = super().get_object()
-#        if not self.request.user == user:
-#            raise Http404('У вас нет доступа к
-# редактированию этой информации')
-#        return user
 
     def get_success_url(self):
         return reverse_lazy(
@@ -274,7 +233,7 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self):
         comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
         if comment.author != self.request.user:
-            raise PermissionDenied
+            raise Http404
         return comment
 
     def get_success_url(self):
@@ -290,7 +249,7 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
         if comment.author != self.request.user:
-            raise PermissionDenied
+            raise Http404
         return comment
 
     def get_success_url(self):
