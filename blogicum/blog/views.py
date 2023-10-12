@@ -1,28 +1,23 @@
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy
-from django.utils import timezone as dt
-from django.core.exceptions import PermissionDenied
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
-from django.http import Http404
 from django.contrib.auth.models import User
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    ListView,
-    UpdateView,
-    DetailView
-)
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone as dt
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
-
-from .models import Post, Comment, Category
-from .forms import PostForm, CommentForm, ProfileForm
+from .constants import PAGINATE_COUNT
+from .forms import CommentForm, PostForm, ProfileForm
+from .models import Category, Comment, Post
 
 
 class PostListView(ListView):
     model = Post
-    paginate_by = 10
+    paginate_by = PAGINATE_COUNT
     template_name = 'blog/index.html'
 
     def get_queryset(self):
@@ -47,10 +42,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         form.instance.pub_date = form.cleaned_data['pub_date']
         return super().form_valid(form)
-
-    def save(self):
-        post = super().save()
-        return post
 
     def get_success_url(self):
         username = self.request.user.username
@@ -129,7 +120,7 @@ class CategoryListView(ListView):
     model = Category
     template_name = 'blog/category.html'
     context_object_name = 'post_list'
-    paginate_by = 10
+    paginate_by = PAGINATE_COUNT
 
     def dispatch(self, request, *args, **kwargs):
         self.category = get_object_or_404(
@@ -159,7 +150,7 @@ class CategoryListView(ListView):
 class UserListView(ListView):
     template_name = 'blog/profile.html'
     slug_url_kwarg = 'username'
-    paginate_by = 10
+    paginate_by = PAGINATE_COUNT
 
     def get_queryset(self):
         if self.request.user.username != self.kwargs['username']:

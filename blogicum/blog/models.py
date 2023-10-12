@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
-from .constants import MAX_STR_LENGHT
+from .constants import (MAX_STR_LENGHT, MAX_STR_LENGTH_CATEGORY,
+                        MAX_STR_LENGTH_POST)
 
 User = get_user_model()
 
@@ -32,7 +33,8 @@ class TitleModel(models.Model):
 
 class Category(PublishedModel, TitleModel):
     description = models.TextField('Описание')
-    slug = models.SlugField('Идентификатор', max_length=64, unique=True,
+    slug = models.SlugField('Идентификатор',
+                            max_length=MAX_STR_LENGTH_CATEGORY, unique=True,
                             help_text='''Идентификатор страницы для URL;
                 разрешены символы латиницы, цифры, дефис и подчёркивание.''')
 
@@ -45,7 +47,7 @@ class Category(PublishedModel, TitleModel):
 
 
 class Location(PublishedModel):
-    name = models.CharField('Название места', max_length=256)
+    name = models.CharField('Название места', max_length=MAX_STR_LENGHT)
 
     class Meta:
         verbose_name = 'местоположение'
@@ -57,7 +59,7 @@ class Location(PublishedModel):
 
 class Post(PublishedModel, TitleModel):
     title = models.CharField(
-        max_length=200, verbose_name='Заголовок')
+        max_length=MAX_STR_LENGTH_POST, verbose_name='Заголовок')
     text = models.TextField(verbose_name='Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
